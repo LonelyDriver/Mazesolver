@@ -1,0 +1,21 @@
+{
+    "Start": "S",
+    "End": "E",
+    "Path": " ",
+    "Obstacle": "O",
+    "Map" : ["               ",
+             "  OOOOOOOO     ",
+             "          O    ",
+             "           O  E",
+             "  OOOOOOOOOOOOO",
+             "         O     ",
+             "        O  O   ",
+             "       O   O   ",
+             "      O    O   ",
+             "  OOOO     O   ",
+             "           O   ",
+             "OOOOOOOOOOOOOO ",
+             "               ",
+             " OOOOOOOOOOOOOO",
+             "             S "]
+}
