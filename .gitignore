@@ -1,0 +1,6 @@
+.vscode
+.log
+.pytest_cache
+
+/pathfinding
+/__pycache__
