@@ -1,4 +1,4 @@
-from mazesolver.src.pathfinding import MapCreator
+from mazesolver.src.pathfinding import MazeParser
 from mazesolver.src.solve import BreathSolver
 from mazesolver.src.ui import MazeApp
 import json
@@ -20,18 +20,12 @@ if __name__ == "__main__":
                         "    OOOOOO",
                         "         S"]
     map_json = json.dumps(map_file)
-
-    c = MapCreator()
-    c.Load(map_json)
-    c.CreateNodes()
-    breath = BreathSolver(c.Params())
-    breath.Solve()
-    """
-    c.Load("src/maps/example.json")
-    c.CreateNodes()
-    params = c.Params()
-    breath = BreathSolver(params)
-    breath.Solve()
-    MazeApp().run()
-    """
-
+    map_file = "mazesolver/src/maps/example.json"
+    parser = MazeParser()
+    #parser.InitializeFromJson(map_json)
+    parser.LoadJsonFileAndInitialize(map_file)
+    parser.CreateNodes()
+    solver = BreathSolver(parser.GetParameters())
+    solver.Solve()
+    solver.PrintPath()
+    
