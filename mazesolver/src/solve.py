@@ -2,6 +2,7 @@ from mazesolver.src.pathfinding import Node, MazeDto
 from mazesolver.src.timer import Timer
 from queue import Queue
 import logging
+import sys
 
 logger = logging.getLogger("App")
 logger.setLevel(logging.DEBUG)
@@ -60,6 +61,8 @@ class BreathSolver:
             logger.info("Way out:")
             for index, row in enumerate(self._maze.Maze):
                 logger.info(row)
+        except KeyError as err:
+            logger.exception("KeyError: {}".format(err))
         except:
             logger.exception("Unexpected error: {}".format(sys.exc_info()[0]))
 

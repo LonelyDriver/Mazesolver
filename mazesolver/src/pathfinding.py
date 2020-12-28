@@ -26,8 +26,8 @@ class Node:
     '''
     def __init__(self, id: int, pos: tuple, obstacle: bool):
         """
-        \param id   Unique node id
-        \param pos  X and Y position on map 
+        param id   Unique node id
+        param pos  X and Y position on map 
         """
         self._id = id
         self._pos = pos
@@ -165,9 +165,9 @@ class MazeParser:
             logger.exception("No obstacle found")
 
     def CreateNodes(self):
-        if self._maze.Maze == None:
+        if len(self._maze.Maze) <1:
             logger.error("No map loaded")
-            exit()
+            raise RuntimeError("No map loaded")
         try:
             self._createNodes()
             self._findNodeNeighbours()
