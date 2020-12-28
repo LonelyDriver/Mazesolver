@@ -1,6 +1,6 @@
 .vscode
 *.log
 .pytest_cache
+.pyc
 
 /pathfinding
-/__pycache__
