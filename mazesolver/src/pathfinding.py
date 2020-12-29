@@ -9,14 +9,23 @@ f_handler = logging.FileHandler("pathfinding.log")
 s_handler.setLevel(logging.DEBUG)
 f_handler.setLevel(logging.ERROR)
 
-s_format = logging.Formatter("%(asctime)s.%(msecs)03d Function: %(funcName)s %(levelname)s: %(message)s","%d.%m.%Y %H:%M:%S")
-f_format = logging.Formatter("%(asctime)s.%(msecs)03d Function: %(funcName)s %(levelname)s: %(message)s","%d.%m.%Y %H:%M:%S")
+s_format = logging.Formatter(
+    "%(asctime)s.%(msecs)03d Function: "
+    "%(funcName)s %(levelname)s: %(message)s",
+    "%d.%m.%Y %H:%M:%S")
+
+f_format = logging.Formatter(
+    "%(asctime)s.%(msecs)03d Function: "
+    "%(funcName)s %(levelname)s: %(message)s",
+    "%d.%m.%Y %H:%M:%S")
+
 s_handler.setFormatter(s_format)
 f_handler.setFormatter(f_format)
 
 logger.addHandler(s_handler)
 logger.addHandler(f_handler)
 logger.setLevel(logging.DEBUG)
+
 
 class Node:
     '''
@@ -27,12 +36,13 @@ class Node:
     def __init__(self, id: int, pos: tuple, obstacle: bool):
         """
         param id   Unique node id
-        param pos  X and Y position on map 
+        param pos  X and Y position on map
         """
         self._id = id
         self._pos = pos
         self._obstacle = obstacle
         self._neighbours = None
+
     @property
     def Neighbours(self) -> list:
         return self._neighbours
@@ -54,9 +64,9 @@ class Node:
         return self._pos
 
     @Pos.setter
-    def Pos(self, value: tuple):
+    def Pos(self, pos: tuple):
         self._pos = pos
-    
+
     @property
     def Obstacle(self) -> bool:
         return self._obstacle
@@ -64,6 +74,7 @@ class Node:
     @Obstacle.setter
     def Obstace(self, obstacle):
         self._obstacle = obstacle
+
 
 class MazeDto:
     def __init__(self):
@@ -79,11 +90,11 @@ class MazeDto:
     @Maze.setter
     def Maze(self, maze: str):
         self._maze = maze
-    
+
     @property
     def Nodes(self) -> list:
         return self._nodes
-    
+
     @Nodes.setter
     def Nodes(self, nodes):
         self._nodes = nodes
@@ -103,7 +114,7 @@ class MazeDto:
     @EndNode.setter
     def EndNode(self, end_node: Node):
         self._end_node = end_node
-    
+
 
 class MazeParser:
     def __init__(self):
@@ -135,8 +146,8 @@ class MazeParser:
             self._initializeMembersfromJson(maze_json)
         except OSError as err:
             logger.exception("OS error: {}".format(err))
-        except:
-            logger.exception("Unexpected error: {}".format(sys.exc_info()[0]))
+        except KeyError as err:
+            logger.exception("KeyError: {}".format(err))
 
     def _loadFile(self, filename) -> str:
         with open(filename, 'r') as f:
@@ -162,24 +173,22 @@ class MazeParser:
             self._obstacle = file['Obstacle']
             logger.debug("Obstacles: %s", self._obstacle)
         except KeyError as e:
-            logger.exception("No obstacle found")
+            logger.exception("KeyError: {}".format(e))
 
     def CreateNodes(self):
-        if len(self._maze.Maze) <1:
+        if len(self._maze.Maze) < 1:
             logger.error("No map loaded")
             raise RuntimeError("No map loaded")
-        try:
-            self._createNodes()
-            self._findNodeNeighbours()
-        except:
-            logger.exception("Unexpected error: {}".format(sys.exc_info()[0]))        
-            
+
+        self._createNodes()
+        self._findNodeNeighbours()
+
     def _createNodes(self):
         nodes = []
         for y, row in enumerate(self._maze.Maze):
             for x, col in enumerate(row):
                 id = y*10+x
-                pos = (x,y)
+                pos = (x, y)
                 obstacle = (col == self._obstacle)
                 node = Node(id, pos, obstacle)
                 self._nodes.append(node)
@@ -201,7 +210,8 @@ class MazeParser:
                 n.append(index - 1)
             if not (index % self._width == self._width-1):
                 n.append(index + 1)
-            neighbours =    [self._maze.Nodes[index] for index in n 
-                            if index >= 0 and index < self._max_tiles and not self._maze.Nodes[index].Obstacle]
+            neighbours = [self._maze.Nodes[index] for index in n
+                          if index >= 0 and index < self._max_tiles
+                          and not self._maze.Nodes[index].Obstacle]
 
             node.Neighbours = neighbours
