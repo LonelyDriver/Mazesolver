@@ -1,4 +1,4 @@
 # Mazesolver Package
-![](https://github.com/LonelyDriver/Mazesolver/workflows/Project%20Tests/badge.svg)
+![Python package](https://github.com/LonelyDriver/Mazesolver/workflows/Python%20package/badge.svg)
 
 Description WIP
