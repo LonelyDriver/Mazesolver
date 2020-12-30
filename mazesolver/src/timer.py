@@ -1,10 +1,12 @@
 import time
 import functools
 
+
 class TimerException(Exception):
     # Custom exception class used to report timer errors
     def __init__(self, msg, *args, **kwargs):
         super().__init__(msg, *args, **kwargs)
+
 
 class Timer:
     def __init__(self, logging=print, msg="Elapsed time: {:0.4f} s"):
@@ -21,7 +23,7 @@ class Timer:
     def Stop(self):
         if self._start_time is None:
             raise TimerException("Timer not running. Start timer first.")
-        
+
         elapsed_time = time.perf_counter() - self._start_time
         self._start_time = None
         if self._logging:

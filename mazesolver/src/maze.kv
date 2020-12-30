@@ -1,16 +1,16 @@
 #:kivy 2.0
 <Field>:
+    colors: [(0.722, 0.682, 0.784, 1), (0.235, 0.204, 0.361, 1)]
     background_down:''
     background_normal:''
 
-<HomeSheet>:
+<HomeScreen>:
     BoxLayout:
         orientation: 'vertical'
         GridLayout:
             id: maze
             cols: 30
             rows: 25
-            spacing: .5
 
         BoxLayout:
             id: footer
@@ -18,7 +18,29 @@
             size_hint: (1.0, .05)
             Button:
                 text: "Solve"
-                
+
             Button:
                 text: "Properties"
+                on_press:
+                    root.manager.transition.direction = 'left'
+                    root.manager.current = "properties"
 
+<PropertiesScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        Button:
+            text: "Set Start and end point"
+            on_press:
+                root.changeState()
+                root.manager.transition.direction = 'right'
+                root.manager.current = "menu"
+        Button:
+            text: "Reset"
+            on_press:
+                root.manager.transition.direction = 'right'
+                root.manager.current = "menu"
+        Button:
+            text: "Menu"
+            on_press: 
+                root.manager.transition.direction = 'right'
+                root.manager.current = "menu"
