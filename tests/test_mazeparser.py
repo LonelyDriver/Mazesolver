@@ -1,5 +1,6 @@
 import json
 from mazesolver.src.pathfinding import MazeParser
+from mazesolver.src.exceptions import MazeparsingError
 
 
 def example_map_data() -> str:
@@ -44,7 +45,7 @@ def test_loading_json_no_start():
 
         MazeParser().InitializeFromJson(json.dumps(data_json))
         assert False
-    except KeyError:
+    except MazeparsingError:
         assert True
 
 
@@ -52,9 +53,11 @@ def test_loading_json_no_obstacle():
     data = example_map_data()
     data_json = json.loads(data)
     del data_json['Obstacle']
-
-    MazeParser().InitializeFromJson(json.dumps(data_json))
-    assert True
+    try:
+        MazeParser().InitializeFromJson(json.dumps(data_json))
+        assert False
+    except MazeparsingError:
+        assert True
 
 
 def test_create_nodes_without_initialzation():
@@ -62,7 +65,7 @@ def test_create_nodes_without_initialzation():
         parser = MazeParser()
         parser.CreateNodes()
         assert False
-    except RuntimeError:
+    except MazeparsingError:
         assert True
 
 

@@ -1,7 +1,7 @@
 import json
 from mazesolver.src.pathfinding import MazeParser
 from mazesolver.src.solve import BreathSolver
-
+from mazesolver.src.exceptions import SolveError
 
 def example_map_data() -> str:
     map_file = dict()
@@ -39,8 +39,11 @@ def test_print_path_not_solved():
     parser.CreateNodes()
 
     solver = BreathSolver(parser.GetMazeParameters())
-    solver.PrintPath()
-    assert True
+    try:
+        solver.PrintPath()
+        assert False
+    except SolveError:
+        assert True
 
 
 def test_solved_path_shortest():

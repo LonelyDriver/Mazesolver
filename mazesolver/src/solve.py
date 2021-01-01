@@ -1,5 +1,6 @@
 from mazesolver.src.pathfinding import MazeDto
 from mazesolver.src.timer import Timer
+from mazesolver.src.exceptions import SolveError
 from queue import Queue
 import logging
 
@@ -30,8 +31,8 @@ class BreathSolver:
 
     def SolveStep(self):
         if self._maze.StartNode is None or self._maze.EndNode is None:
-            logger.info("No start or end point")
-            raise RuntimeError("Start or end node invalid")
+            logger.exception("RuntimeError: {}".format(RuntimeError("Start or end node invalid")))
+            raise SolveError(RuntimeError("Start or end node invalid"), self.SolveStep.__name__)
 
         current = self._frontier.get()
         if current == self._maze.EndNode:
@@ -45,11 +46,8 @@ class BreathSolver:
 
     @Timer(logging=logger.info)
     def Solve(self):
-        try:
-            while not self._frontier.empty():
-                self.SolveStep()
-        except RuntimeError as e:
-            logger.exception(e.msg())
+        while not self._frontier.empty():
+            self.SolveStep()
 
     def PrintPath(self):
         try:
@@ -59,6 +57,7 @@ class BreathSolver:
                 logger.info(row)
         except KeyError as err:
             logger.exception("KeyError: {}".format(err))
+            raise SolveError(err, self._createPath.__name__)
 
     def _createPath(self):
         current = self._maze.EndNode

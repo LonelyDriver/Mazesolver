@@ -18,6 +18,8 @@
             size_hint: (1.0, .05)
             Button:
                 text: "Solve"
+                on_press:
+                    root.solve()
 
             Button:
                 text: "Properties"
@@ -37,8 +39,7 @@
         Button:
             text: "Reset"
             on_press:
-                root.manager.transition.direction = 'right'
-                root.manager.current = "menu"
+                root.reset()
         Button:
             text: "Menu"
             on_press: 

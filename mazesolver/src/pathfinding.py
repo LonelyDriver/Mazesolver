@@ -1,6 +1,7 @@
 import json
 import logging
 import sys
+from mazesolver.src.exceptions import MazeparsingError
 
 logger = logging.getLogger("App")
 
@@ -132,13 +133,20 @@ class MazeParser:
     def InitializeFromJson(self, map_json: str):
         if len(map_json) < 1:
             logger.warning("Invalid map json")
-            raise ArithmeticError("Length of json object < 1")
+            raise MazeparsingError(RuntimeError("Length of json object < 1"),
+                    self.InitializeFromJson.__name__)
+
         try:
             self._initializeMembersfromJson(map_json)
         except TypeError as e:
             logger.exception("TypeError: {}".format(e))
+            raise MazeparsingError(e, self._initializeMembersfromJson.__name__)
         except json.JSONDecodeError as e:
             logger.exception(e.msg)
+            raise MazeparsingError(e, self._initializeMembersfromJson.__name__)
+        except KeyError as err:
+            logger.exception("KeyError: {}".format(err))
+            raise MazeparsingError(err, self._initializeMembersfromJson.__name__)
 
     def LoadJsonFileAndInitialize(self, filename: str):
         try:
@@ -146,8 +154,10 @@ class MazeParser:
             self._initializeMembersfromJson(maze_json)
         except OSError as err:
             logger.exception("OS error: {}".format(err))
+            raise MazeparsingError(err, self.InitializeFromJson.__name__)
         except KeyError as err:
             logger.exception("KeyError: {}".format(err))
+            raise MazeparsingError(err, self.InitializeFromJson.__name__)
 
     def _loadFile(self, filename) -> str:
         with open(filename, 'r') as f:
@@ -174,11 +184,12 @@ class MazeParser:
             logger.debug("Obstacles: %s", self._obstacle)
         except KeyError as e:
             logger.exception("KeyError: {}".format(e))
+            raise MazeparsingError(e, self._initializeMembersfromJson.__name__)
 
     def CreateNodes(self):
         if len(self._maze.Maze) < 1:
             logger.error("No map loaded")
-            raise RuntimeError("No map loaded")
+            raise MazeparsingError(RuntimeError("No map loaded"), self.CreateNodes.__name__)
 
         self._createNodes()
         self._findNodeNeighbours()
@@ -202,16 +213,20 @@ class MazeParser:
         self._maze.Nodes = nodes
 
     def _findNodeNeighbours(self):
-        for index, node in enumerate(self._maze.Nodes):
-            n = list()
-            n.append(index - self._width)
-            n.append(index + self._width)
-            if not (index % self._width == 0):
-                n.append(index - 1)
-            if not (index % self._width == self._width-1):
-                n.append(index + 1)
-            neighbours = [self._maze.Nodes[index] for index in n
-                          if index >= 0 and index < self._max_tiles
-                          and not self._maze.Nodes[index].Obstacle]
+        try:
+            for index, node in enumerate(self._maze.Nodes):
+                n = list()
+                n.append(index - self._width)
+                n.append(index + self._width)
+                if not (index % self._width == 0):
+                    n.append(index - 1)
+                if not (index % self._width == self._width-1):
+                    n.append(index + 1)
+                neighbours = [self._maze.Nodes[index] for index in n
+                                if index >= 0 and index < self._max_tiles
+                                and not self._maze.Nodes[index].Obstacle]
 
-            node.Neighbours = neighbours
+                node.Neighbours = neighbours
+        except KeyError as err:
+            logger.exception("KeyError: {}".format(err))
+            raise MazeparsingError(err, self._findNodeNeighbours.__name__)
