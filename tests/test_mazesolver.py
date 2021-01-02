@@ -28,7 +28,8 @@ def test_solve():
     parser.InitializeFromJson(example_map_data())
     parser.CreateNodes()
 
-    solver = BreathSolver(parser.GetMazeParameters())
+    solver = BreathSolver()
+    solver.Initialize(parser.GetMazeParameters())
     solver.Solve()
     assert True
 
@@ -38,7 +39,8 @@ def test_print_path_not_solved():
     parser.InitializeFromJson(example_map_data())
     parser.CreateNodes()
 
-    solver = BreathSolver(parser.GetMazeParameters())
+    solver = BreathSolver()
+    solver.Initialize(parser.GetMazeParameters())
     try:
         solver.PrintPath()
         assert False
@@ -61,7 +63,8 @@ def test_solved_path_shortest():
     parser.InitializeFromJson(example_map_data())
     parser.CreateNodes()
 
-    solver = BreathSolver(parser.GetMazeParameters())
+    solver = BreathSolver()
+    solver.Initialize(parser.GetMazeParameters())
     solver.Solve()
     solver.PrintPath()
 

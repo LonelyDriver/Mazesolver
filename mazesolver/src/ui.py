@@ -3,12 +3,15 @@ from kivy.app import App
 from kivy.uix.screenmanager import Screen, ScreenManager, CardTransition
 from kivy.uix.button import Button
 from kivy.properties import BooleanProperty, ObjectProperty
+from kivy.clock import Clock
 from mazesolver.src.pathfinding import MazeParser
 from mazesolver.src.solve import BreathSolver
+from mazesolver.src.exceptions import MazeparsingError, SolveError
 import logging
 import sys
 import enum
 import json
+from functools import wraps
 
 logger = logging.getLogger("Ui")
 
@@ -91,12 +94,15 @@ class Field(Button):
         self.background_color = self.colors[self.color_index]
 
     def change_state(self, instance, value):
-        self.color_index = 0
+        if self.disabled is True:
+            logger.debug("Disabled")
+            return
 
         if (self.field_type == FieldStates.Start or
                 self.field_type == FieldStates.End):
             return
 
+        self.color_index = 0
         if self.root.state == GridStates.MarkStart:
             self.behaviour = self._mark_start
         elif self.root.state == GridStates.MarkEnd:
@@ -106,13 +112,13 @@ class Field(Button):
         logger.debug("Behaviour changed: {}".format(self.behaviour))
 
     def _mark_start(self):
-        self.background_color = (1, 0, 0, 1)
+        self.background_color = (211/255, 12/255, 184/255, 1)
         self.behaviour = self._do_nothing
         self.field_type = FieldStates.Start
         self.root.state = GridStates.MarkEnd
 
     def _mark_end(self):
-        self.background_color = (0, 1, 0, 1)
+        self.background_color = (109/255, 241/255, 216/255, 1)
         self.behaviour = self._do_nothing
         self.field_type = FieldStates.End
         self.root.state = GridStates.Normal
@@ -122,12 +128,12 @@ class Field(Button):
 
     def _change_color_and_state(self):
         try:
-            self._change_color()
-            self._change_state()
+            self._empty_or_obstacle_color()
+            self._empty_or_obstacle_state()
         except KeyError as err:
             logger.exception("KeyError: {}".format(err))
 
-    def _change_color(self):
+    def _empty_or_obstacle_color(self):
         for index, c in enumerate(self.colors):
             if self.color_index == index:
                 self.color_index = (index+1) % len(self.colors)
@@ -135,10 +141,21 @@ class Field(Button):
                 self.changed = True
                 break
 
-    def _change_state(self):
+    def _empty_or_obstacle_state(self):
         states = [FieldStates.Empty, FieldStates.Obstacle]
         self.field_type = states[self.color_index]
         logger.debug("Type: {}".format(self.field_type))
+
+    def disable(self, instance, value):
+        logger.debug("Disbaled: {}".format(value))
+        self.disabled = value
+        if self.disabled is True:
+            self.behaviour = self._do_nothing
+        else:
+            self.behaviour = self._change_color_and_state
+
+    def wayout(self):
+        self.background_color = (92/255, 44/255, 109/255, 1)
 
     @property
     def Type(self) -> enum.Enum:
@@ -147,7 +164,7 @@ class Field(Button):
 
 class HomeScreen(Screen):
     state = ObjectProperty(GridStates.Normal)
-    reset = BooleanProperty(False)
+    disable_grid = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -160,40 +177,46 @@ class HomeScreen(Screen):
         for _ in range(self.ids.maze.cols*self.ids.maze.rows):
             field = Field(self)
             self.bind(state=field.change_state)
+            self.bind(disable_grid=field.disable)
             self.ids['maze'].add_widget(field)
 
     def reset_grid(self):
+        self.disable_grid = False
         for child in self.ids.maze.children:
             child.reset_field()
-        HomeScreen.state = GridStates.Normal
+        self.state = GridStates.Normal
 
     def solve(self):
+        self.disable_grid = True
+        parser = MazeParser()
+        solver = BreathSolver()
         try:
             maze_json = self._create_json_from_grid()
-            parser = MazeParser()
             parser.InitializeFromJson(maze_json)
             parser.CreateNodes()
             maze_params = parser.GetMazeParameters()
-            solver = BreathSolver(maze_params)
+            solver.Initialize(maze_params)
             solver.Solve()
-            solver.PrintPath()
-        except RuntimeError as err:
-            logger.exception("RuntimeError: {}".format(err))
-        except ArithmeticError as err:
-            logger.exception("ArithmeticError: {}".format(err))
+            solver.CreatePath()
+            way_out = solver.Path
+            self._display_way_out(way_out)
+        except MazeparsingError as err:
+            logger.exception("MazeparsingError: {}".format(err))
+        except SolveError as err:
+            logger.exception("SolvError: {}".format(err))
 
     def _create_json_from_grid(self) -> str:
         maze = []
         row = []
         logger.debug("Cols: {}".format(self.ids.maze.cols))
         for index, child in reversed(list(enumerate(self.ids.maze.children))):
-            if child.Type == FieldStates.Empty:
+            if child.Type is FieldStates.Empty:
                 row.append(" ")
-            elif child.Type == FieldStates.Obstacle:
+            elif child.Type is FieldStates.Obstacle:
                 row.append("O")
-            elif child.Type == FieldStates.Start:
+            elif child.Type is FieldStates.Start:
                 row.append("S")
-            elif child.Type == FieldStates.End:
+            elif child.Type is FieldStates.End:
                 row.append("E")
             else:
                 logger.error("Undefined field state")
@@ -208,13 +231,24 @@ class HomeScreen(Screen):
             logger.debug("{}".format(row))
         return json.dumps(self.maze)
 
+    def _display_way_out(self, way_out: list):
+        fields = list(reversed(self.ids.maze.children))
+        maze_width = len(self.maze["Map"][0])
+        logger.debug("Width: {}".format(maze_width))
+        way_out = way_out[1:-1]
+        for node in way_out:
+            x, y = node.Pos
+            logger.debug("X:{}Y:{}".format(x, y))
+            index = x + y * maze_width
+            fields[index].wayout()
+
 
 class PropertiesScreen(Screen):
     def __init__(self, homescreen, **kwargs):
         super().__init__(**kwargs)
         self.homescreen = homescreen
 
-    def changeState(self):
+    def changeToMarkState(self):
         self.homescreen.state = GridStates.MarkStart
 
     def reset(self):
