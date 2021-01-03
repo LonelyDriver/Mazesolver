@@ -16,7 +16,7 @@ from functools import wraps
 logger = logging.getLogger("Ui")
 
 s_handler = logging.StreamHandler(sys.stdout)
-f_handler = logging.FileHandler("pathfinding.log")
+f_handler = logging.FileHandler("mazesolver.log")
 s_handler.setLevel(logging.DEBUG)
 f_handler.setLevel(logging.ERROR)
 
