@@ -221,6 +221,7 @@ class HomeScreen(Screen):
             logger.exception("MazeparsingError: {}".format(err))
         except SolveError as err:
             logger.exception("SolvError: {}".format(err))
+            self.reset_grid()
 
     def _create_json_from_grid(self) -> str:
         maze = []
