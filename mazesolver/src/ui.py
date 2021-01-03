@@ -40,6 +40,23 @@ logger.setLevel(logging.DEBUG)
 kivy.require("2.0.0")
 
 
+def yield_to_sleep(func):
+
+    @wraps(func)
+    def wrap(*args, **kwargs):
+        gen = func(*args, **kwargs)
+
+        def next_step(*args):
+            try:
+                t = next(gen)
+            except StopIteration as err:
+                logger.debug("StopItertaion: {}".format(err))
+            else:
+                Clock.schedule_once(next_step, t)
+        next_step()
+    return wrap
+
+
 class FieldStates(enum.Enum):
     Obstacle = 0
     Empty = 1
@@ -231,6 +248,7 @@ class HomeScreen(Screen):
             logger.debug("{}".format(row))
         return json.dumps(self.maze)
 
+    @yield_to_sleep
     def _display_way_out(self, way_out: list):
         fields = list(reversed(self.ids.maze.children))
         maze_width = len(self.maze["Map"][0])
@@ -241,6 +259,7 @@ class HomeScreen(Screen):
             logger.debug("X:{}Y:{}".format(x, y))
             index = x + y * maze_width
             fields[index].wayout()
+            yield 0.32
 
 
 class PropertiesScreen(Screen):
