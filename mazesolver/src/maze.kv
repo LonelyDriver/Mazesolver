@@ -1,5 +1,46 @@
 #:kivy 2.0
-<Button>:
+<StartNotSetPopup>:
+    title: "Mazesolver"
+    BoxLayout:
+        orientation:'vertical'
+
+        Label:
+            text: "Start or end point not set."
+
+        Button:
+            text: "Close"
+            size_hint_y: 0.2
+            on_release:
+                root.dismiss()
+
+<CouldNotSolveMazePopup>:
+    title: "Mazesolver"
+    BoxLayout:
+        id: box
+        orientation:'vertical'
+        spacing: 1
+        Label:
+            text: "Could not solve maze.\nPlease try again."
+
+        Button:
+            text: "Reset"
+            size_hint: (1, .2)
+            on_release:
+                root.reset()
+                root.dismiss()
+        Button:
+            text: "Close"
+            size_hint: (1, .2)
+            on_release:
+                root.dismiss()
+
+<SolveSpinner>:
+    text: "BreadthFirstSearch"
+    values: "BreadthFirstSearch", "GreedyBestFirstSearch", "A*"
+    on_text:
+        print("The spinner {} has text {}".format(self, self.text))
+
+<TealButton>:
     background_normal: ''
     background_down: ''
     background_color: (93/255, 164/255, 166/255, 1)
@@ -46,9 +87,10 @@
 <PropertiesScreen>:
     BoxLayout:
         orientation: 'vertical'
-        padding: 1
-        spacing: 1
+        spacing: 2
         
+        SolveSpinner:
+
         Button:
             text: "Set Start and end point"
             on_press:

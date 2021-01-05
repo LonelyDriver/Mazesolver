@@ -4,6 +4,8 @@ from kivy.uix.screenmanager import Screen, ScreenManager, CardTransition
 from kivy.uix.button import Button
 from kivy.properties import BooleanProperty, ObjectProperty
 from kivy.clock import Clock
+from kivy.uix.popup import Popup
+from kivy.uix.spinner import Spinner
 from mazesolver.src.pathfinding import MazeParser
 from mazesolver.src.solve import BreathSolver
 from mazesolver.src.exceptions import MazeparsingError, SolveError
@@ -68,6 +70,27 @@ class GridStates(enum.Enum):
     Normal = 0
     MarkStart = 1
     MarkEnd = 2
+
+
+class TealButton(Button):
+    pass
+
+
+class SolveSpinner(Spinner):
+    pass
+
+
+class StartNotSetPopup(Popup):
+    pass
+
+
+class CouldNotSolveMazePopup(Popup):
+    def __init__(self, root):
+        super().__init__()
+        self.root = root
+
+    def reset(self):
+        self.root.reset_grid()
 
 
 class Field(Button):
@@ -183,7 +206,7 @@ class HomeScreen(Screen):
     state = ObjectProperty(GridStates.Normal)
     disable_grid = BooleanProperty(False)
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
         self.maze = {}
         self.maze["Start"] = "S"
@@ -211,17 +234,31 @@ class HomeScreen(Screen):
             maze_json = self._create_json_from_grid()
             parser.InitializeFromJson(maze_json)
             parser.CreateNodes()
-            maze_params = parser.GetMazeParameters()
-            solver.Initialize(maze_params)
-            solver.Solve()
-            solver.CreatePath()
-            way_out = solver.Path
-            self._display_way_out(way_out)
         except MazeparsingError as err:
             logger.exception("MazeparsingError: {}".format(err))
-        except SolveError as err:
-            logger.exception("SolvError: {}".format(err))
-            self.reset_grid()
+        else:
+            try:
+                maze_params = parser.GetMazeParameters()
+                solver.Initialize(maze_params)
+            except SolveError as err:
+                logger.exception("SolvError: {}".format(err))
+                StartNotSetPopup().open()
+                self.disable_grid = False
+            else:
+                try:
+                    solver.Solve()
+                    solver.CreatePath()
+                    way_out = solver.Path
+                    self._display_way_out(way_out)
+                except SolveError as err:
+                    logger.exception("SolvError: {}".format(err))
+                    CouldNotSolveMazePopup(self).open()
+                    self.disable_grid = False
+                else:
+                    try:
+                        pass
+                    except SolveError as err:
+                        logger.exception("SolvError: {}".format(err))
 
     def _create_json_from_grid(self) -> str:
         maze = []
